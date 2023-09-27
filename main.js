@@ -1,11 +1,27 @@
-let nombre = prompt("¿Cómo te llamas?")
-if (nombre == "") { nombre = "extraño" }
-let seleccion = true
+let nombre = prompt("¿Cómo te llamas?") || "Extraño"
 
-while (seleccion == true) {
-    recomendar()
-    let opcionContinuar = parseInt(prompt("¿Quieres que te recomiende otro libro?\n" + "1. SI\n" + "2. NO"))
-    if (opcionContinuar != 1) { seleccion = false }
+
+// Función para obtener número aleatorio
+function randomNumber(min, max) {
+    min = Math.ceil(min)
+    max = Math.floor(max)
+    return Math.floor(Math.random() * (max - min + 1) + min)
+}
+
+//Función que obtiene un libro al azar de la categoría seleccionada por el usuario 
+function fetchBooks(category) {
+    fetch(`https://openlibrary.org/subjects/${category}.json`)
+        .then((res) => res.json())
+        .then((data) => {
+            [...works] = data.works
+            book = works[randomNumber(0, works.length)]
+            alert(`Quizás te interesa el libro: \n${book.title}\nEscrito por ${book.authors[0].name}`)
+            recomendar()
+        })
+        .catch((err) => {
+            alert("Ha ocurrido un problema, intenta de nuevo más tarde")
+            console.log(err)
+        })
 }
 
 function recomendar() {
@@ -15,13 +31,17 @@ function recomendar() {
     3. Misterio`))
 
     switch (categoria) {
-        case 1: alert("Tal vez te pueda interesar el libro 'CUJO', escrito por Stephen King, de 393 páginas.")
-            break;
-        case 2: alert("Tal vez te pueda interesar el libro 'MATILDA' escrito por Roald Dahl, de 225 páginas.")
-            break;
-        case 3: alert("Tal vez te pueda interesar el libro 'ASESINATO PARA PRINCIPIANTES', escrito por Holly Jackson , de 432 páginas.")
-            break;
+        case 1:
+            fetchBooks("horror")
+            break
+        case 2:
+            fetchBooks("fantasy")
+            break
+        case 3:
+            fetchBooks("mystery_and_detective_stories")
+            break
         default: recomendar()
     }
 }
 
+recomendar()
