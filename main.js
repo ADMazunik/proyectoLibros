@@ -1,4 +1,11 @@
-let nombre = prompt("¿Cómo te llamas?") || "Extraño"
+let userName = prompt("Cómo te llamas?") || "Invitado"
+const user = {
+    name: userName,
+    booksHistorial: [],
+    addBook: (book) => {
+        user.booksHistorial.push(book)
+    }
+}
 
 const librosFantasia = [
     {
@@ -479,30 +486,32 @@ const librosHorror = [
     }
 ]
 
-// Función para obtener número aleatorio
-function randomNumber(min, max) {
+function getRandomNumber(min, max) {
     min = Math.ceil(min)
     max = Math.floor(max)
     return Math.floor(Math.random() * (max - min + 1) + min)
 }
 
-//Función que obtiene un libro al azar de la categoría seleccionada por el usuario
 function showBooks(category) {
-  number = randomNumber(0, category.length - 1)
-  console.log(category)
-  selectedBook = category[number]
-  alert(`Te recomiendo el libro\n${selectedBook.title}\nEscrito por ${selectedBook.authors[0].name}`)
-  recomendar()
+    number = getRandomNumber(0, category.length - 1)
+    selectedBook = category[number]
+    if (user.booksHistorial.includes(selectedBook)) {
+        showBooks(category)
+    } else {
+        alert(`Te recomiendo el libro\n${selectedBook.title}\nEscrito por ${selectedBook.authors[0].name}`)
+        user.addBook(selectedBook)
+        user.booksHistorial.length < 10 ? recommendBook() : alert("Has alcanzado el límite de recomendaciones")
+    }
 }
 
 
-function recomendar() {
-    let categoria = parseInt(prompt(`Hola ${nombre}, por favor selecciona una categoría utilizando el número correspondiente:    
+function recommendBook() {
+    let selectedCategory = parseInt(prompt(`Hola ${user.name}, por favor selecciona una categoría utilizando el número correspondiente:    
     1. Terror
     2. Fantasía
     3. Misterio`))
 
-    switch (categoria) {
+    switch (selectedCategory) {
         case 1:
             showBooks(librosHorror)
             break
@@ -512,8 +521,8 @@ function recomendar() {
         case 3:
             showBooks(librosMisterio)
             break
-        default: recomendar()
+        default: recommendBook()
     }
 }
 
-recomendar()
+recommendBook()
