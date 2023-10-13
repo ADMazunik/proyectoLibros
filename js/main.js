@@ -1,11 +1,169 @@
-let userName = prompt("Cómo te llamas?") || "Invitado"
 const user = {
-    name: userName,
+    name: "",
     booksHistorial: [],
     addBook: (book) => {
         user.booksHistorial.push(book)
+    },
+    clearHistorial: () => {
+        user.booksHistorial = []
     }
 }
+
+const bookSelect = document.getElementById("bookSelect")
+const bookForm = document.getElementById("bookForm")
+bookForm.addEventListener('submit', recommendBook)
+
+function getRandomNumber(min, max) {
+    min = Math.ceil(min)
+    max = Math.floor(max)
+    return Math.floor(Math.random() * (max - min + 1) + min)
+}
+
+function createUser() {
+    const main = document.getElementById("main")
+    const popUp = document.createElement("div")
+    popUp.innerHTML = `
+            <div class="bg-popUp">
+                <div class="d-flex flex-column justify-content-center align-items-center gap-2 mt-3 p-5 name-popUp">
+                    <h2 class="text-dark mb-4 fw-bold">Bienvenido/a, ¿Cómo te llamas?</h2>
+                    <div class="d-flex flex-column gap-2 p-2">
+                        <input id="usernameInput" class="text-center fs-4"  type="text" value="Invitado">
+                        <button id="nameButton" class="btn btn-success align-self-center fw-bold px-4" type="button">Usar este nombre</button>
+                    </div>
+                </div>
+            </div>
+         `
+    main.insertBefore(popUp, main.firstChild)
+    bookSelect.classList.toggle("blur")
+
+    document.getElementById("nameButton").addEventListener("click", () => {
+        newName = document.getElementById("usernameInput").value
+        bookSelect.classList.toggle("blur")
+        popUp.remove()
+        user.name = newName
+        saveData("user", user)
+    })
+}
+
+function recommendBook(e) {
+    e.preventDefault()
+    let selectedCategory = document.getElementById("genre").value
+    switch (selectedCategory) {
+        case "horror":
+            showBooks(librosHorror)
+            break
+        case "fantasy":
+            showBooks(librosFantasia)
+            break
+        case "mistery":
+            showBooks(librosMisterio)
+            break
+    }
+}
+
+function showBooks(category) {
+    number = getRandomNumber(0, category.length - 1)
+    selectedBook = category[number]
+
+    if (user.booksHistorial.findIndex((book) => book.id == selectedBook.id) !== -1) {
+        showBooks(category)
+    } else {
+        if (user.booksHistorial.length >= 10) {
+            renderErrorBooks()
+        } else {
+            user.addBook(selectedBook)
+            saveData("user", user)
+            renderSelection(selectedBook)
+            bookForm.reset()
+        }
+    }
+}
+
+function renderSelection(book) {
+    const bookMsg = document.createElement("div")
+    bookMsg.classList.add("mt-5", "align-self-center", "book-msg")
+    bookMsg.innerHTML = `
+    <div class="card" style="width: 30rem;">
+        <div class="card-body">
+            <p class="card-text">Tal vez pueda interesarte</p>
+            <h3 class="card-title fw-bold m-4">${book.title}</h3>
+            <p class="card-text fs-5">Escrito por <span class="fw-bold">${book.authors[0].name}</span></p>
+            <button id="closeSelectionCard" type="button" class="btn btn-success">¡Genial!</button>
+        </div>
+    </div>
+    `
+    const bookSearch = document.getElementById("bookSearchBtn")
+    bookSearch.toggleAttribute("hidden")
+    bookForm.appendChild(bookMsg)
+
+    const closeSelectionCard = document.getElementById("closeSelectionCard")
+    closeSelectionCard.addEventListener("click", () => {
+        bookForm.removeChild(bookForm.lastChild)
+        renderHistorial()
+        bookSearch.toggleAttribute("hidden")
+    })
+}
+
+function renderErrorBooks() {
+
+
+}
+
+function renderHistorial() {
+    const historialDiv = document.getElementById("historial")
+    historial = document.createElement("div")
+    historial.classList.add("d-flex", "flex-column",)
+    historial.innerHTML = ""
+    if (user.booksHistorial.length > 0) {
+        let accumulator = ``
+        user.booksHistorial.map((book) => {
+            accumulator += ` 
+                        <div id=${book.id} class="card text-center bg-historial">
+                            <div class="card-body d-flex flex-column justify-content-between">
+                            <p class="card-title text-center fs-5">${book.title}</p>
+                            </div>
+                        </div>
+                         `
+
+        })
+        historial.innerHTML = `
+                            <h2 class="align-self-start">Historial <span class="fw-bold">(${user.booksHistorial.length})</span> </h2>    
+                            <div class= "d-flex gap-2">${accumulator}</div>    
+                           `
+        const clearHistorial = document.createElement("button")
+        clearHistorial.classList.add("btn", "btn-danger", "m-3")
+        clearHistorial.innerText = "Borrar Historial"
+        clearHistorial.addEventListener("click", () => {
+            user.clearHistorial()
+            saveData("user", user)
+            renderHistorial()
+        })
+
+        historialDiv.appendChild(historial)
+        historial.appendChild(clearHistorial)
+    } else {
+        historial.innerHTML = `<h2 class="mt-5 align-self-center">Historial Vacío</h2>`
+        historialDiv.appendChild(historial)
+
+    }
+
+}
+
+function saveData(key, value) {
+    localStorage.setItem(key, JSON.stringify(value))
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    dataLoad = JSON.parse(localStorage.getItem("user"))
+    if (dataLoad !== null) {
+        user.name = dataLoad.name
+        user.booksHistorial = dataLoad.booksHistorial
+    } else {
+        createUser()
+    }
+    renderHistorial()
+})
+
 
 const librosFantasia = [
     {
@@ -15,7 +173,8 @@ const librosFantasia = [
                 "key": "/authors/OL22098A",
                 "name": "Lewis Carroll"
             }
-        ]
+        ],
+        "id": 57
     },
     {
         "title": "Treasure Island",
@@ -24,7 +183,8 @@ const librosFantasia = [
                 "key": "/authors/OL25963A",
                 "name": "Robert Louis Stevenson"
             }
-        ]
+        ],
+        "id": 92
     },
     {
         "title": "Gulliver's Travels",
@@ -33,7 +193,8 @@ const librosFantasia = [
                 "key": "/authors/OL24522A",
                 "name": "Jonathan Swift"
             }
-        ]
+        ],
+        "id": 9
     },
     {
         "title": "Through the Looking-Glass",
@@ -42,7 +203,8 @@ const librosFantasia = [
                 "key": "/authors/OL22098A",
                 "name": "Lewis Carroll"
             }
-        ]
+        ],
+        "id": 94
     },
     {
         "title": "The Wonderful Wizard of Oz",
@@ -51,7 +213,8 @@ const librosFantasia = [
                 "key": "/authors/OL9348793A",
                 "name": "L. Frank Baum"
             }
-        ]
+        ],
+        "id": 69
     },
     {
         "title": "The Lost World",
@@ -60,7 +223,8 @@ const librosFantasia = [
                 "key": "/authors/OL161167A",
                 "name": "Arthur Conan Doyle"
             }
-        ]
+        ],
+        "id": 8
     },
     {
         "title": "A Midsummer Night's Dream",
@@ -69,7 +233,8 @@ const librosFantasia = [
                 "key": "/authors/OL9388A",
                 "name": "William Shakespeare"
             }
-        ]
+        ],
+        "id": 46
     },
     {
         "title": "The Prince",
@@ -78,7 +243,8 @@ const librosFantasia = [
                 "key": "/authors/OL23135A",
                 "name": "Niccolò Machiavelli"
             }
-        ]
+        ],
+        "id": 33
     },
     {
         "title": "Five Children and It",
@@ -87,7 +253,8 @@ const librosFantasia = [
                 "key": "/authors/OL18053A",
                 "name": "Edith Nesbit"
             }
-        ]
+        ],
+        "id": 58
     },
     {
         "title": "Alice's Adventures in Wonderland / Through the Looking Glass",
@@ -96,7 +263,8 @@ const librosFantasia = [
                 "key": "/authors/OL22098A",
                 "name": "Lewis Carroll"
             }
-        ]
+        ],
+        "id": 13
     },
     {
         "title": "Le avventure di Pinocchio",
@@ -105,7 +273,8 @@ const librosFantasia = [
                 "key": "/authors/OL162098A",
                 "name": "Carlo Collodi"
             }
-        ]
+        ],
+        "id": 16
     },
     {
         "title": "The Story of the Amulet",
@@ -114,7 +283,8 @@ const librosFantasia = [
                 "key": "/authors/OL18053A",
                 "name": "Edith Nesbit"
             }
-        ]
+        ],
+        "id": 22
     },
     {
         "title": "A Study in Scarlet",
@@ -123,7 +293,8 @@ const librosFantasia = [
                 "key": "/authors/OL161167A",
                 "name": "Arthur Conan Doyle"
             }
-        ]
+        ],
+        "id": 29
     },
     {
         "title": "The Adventures of Sherlock Holmes",
@@ -132,7 +303,8 @@ const librosFantasia = [
                 "key": "/authors/OL161167A",
                 "name": "Arthur Conan Doyle"
             }
-        ]
+        ],
+        "id": 86
     },
     {
         "title": "The Sign of Four",
@@ -141,7 +313,8 @@ const librosFantasia = [
                 "key": "/authors/OL161167A",
                 "name": "Arthur Conan Doyle"
             }
-        ]
+        ],
+        "id": 44
     },
     {
         "title": "The Moonstone",
@@ -162,7 +335,8 @@ const librosFantasia = [
                 "key": "/authors/OL8349355A",
                 "name": "Andronum"
             }
-        ]
+        ],
+        "id": 94
     },
     {
         "title": "The Return of Sherlock Holmes",
@@ -171,7 +345,8 @@ const librosFantasia = [
                 "key": "/authors/OL161167A",
                 "name": "Arthur Conan Doyle"
             }
-        ]
+        ],
+        "id": 1
     },
     {
         "title": "Memoirs of Sherlock Holmes [11 stories]",
@@ -180,7 +355,8 @@ const librosFantasia = [
                 "key": "/authors/OL161167A",
                 "name": "Arthur Conan Doyle"
             }
-        ]
+        ],
+        "id": 10
     },
     {
         "title": "The Story of the Amulet",
@@ -189,7 +365,8 @@ const librosFantasia = [
                 "key": "/authors/OL18053A",
                 "name": "Edith Nesbit"
             }
-        ]
+        ],
+        "id": 97
     },
     {
         "title": "The Strange Case of Dr. Jekyll and Mr. Hyde",
@@ -198,7 +375,8 @@ const librosFantasia = [
                 "key": "/authors/OL25963A",
                 "name": "Robert Louis Stevenson"
             }
-        ]
+        ],
+        "id": 53
     },
     {
         "title": "The Invisible Man",
@@ -207,7 +385,8 @@ const librosFantasia = [
                 "key": "/authors/OL13066A",
                 "name": "H. G. Wells"
             }
-        ]
+        ],
+        "id": 75
     },
     {
         "title": "The Case-Book of Sherlock Holmes",
@@ -216,7 +395,8 @@ const librosFantasia = [
                 "key": "/authors/OL161167A",
                 "name": "Arthur Conan Doyle"
             }
-        ]
+        ],
+        "id": 68
     },
     {
         "title": "Tom Sawyer, Detective",
@@ -233,7 +413,8 @@ const librosFantasia = [
                 "key": "/authors/OL9213496A",
                 "name": "Professor Grover Gardner"
             }
-        ]
+        ],
+        "id": 43
     },
     {
         "title": "The Secret Agent",
@@ -242,7 +423,8 @@ const librosFantasia = [
                 "key": "/authors/OL19441A",
                 "name": "Joseph Conrad"
             }
-        ]
+        ],
+        "id": 26
     }
 ]
 const librosMisterio = [
@@ -253,7 +435,8 @@ const librosMisterio = [
                 "key": "/authors/OL161167A",
                 "name": "Arthur Conan Doyle"
             }
-        ]
+        ],
+        "id": 146
     },
     {
         "title": "The Adventures of Sherlock Holmes",
@@ -262,7 +445,8 @@ const librosMisterio = [
                 "key": "/authors/OL161167A",
                 "name": "Arthur Conan Doyle"
             }
-        ]
+        ],
+        "id": 179
     },
     {
         "title": "The Sign of Four",
@@ -271,7 +455,8 @@ const librosMisterio = [
                 "key": "/authors/OL161167A",
                 "name": "Arthur Conan Doyle"
             }
-        ]
+        ],
+        "id": 101
     },
     {
         "title": "The Moonstone",
@@ -292,7 +477,8 @@ const librosMisterio = [
                 "key": "/authors/OL8349355A",
                 "name": "Andronum"
             }
-        ]
+        ],
+        "id": 183
     },
     {
         "title": "The Return of Sherlock Holmes",
@@ -301,7 +487,8 @@ const librosMisterio = [
                 "key": "/authors/OL161167A",
                 "name": "Arthur Conan Doyle"
             }
-        ]
+        ],
+        "id": 174
     },
     {
         "title": "Memoirs of Sherlock Holmes [11 stories]",
@@ -310,7 +497,8 @@ const librosMisterio = [
                 "key": "/authors/OL161167A",
                 "name": "Arthur Conan Doyle"
             }
-        ]
+        ],
+        "id": 160
     },
     {
         "title": "The Story of the Amulet",
@@ -319,7 +507,8 @@ const librosMisterio = [
                 "key": "/authors/OL18053A",
                 "name": "Edith Nesbit"
             }
-        ]
+        ],
+        "id": 115
     },
     {
         "title": "The Strange Case of Dr. Jekyll and Mr. Hyde",
@@ -328,7 +517,8 @@ const librosMisterio = [
                 "key": "/authors/OL25963A",
                 "name": "Robert Louis Stevenson"
             }
-        ]
+        ],
+        "id": 137
     },
     {
         "title": "The Invisible Man",
@@ -337,7 +527,8 @@ const librosMisterio = [
                 "key": "/authors/OL13066A",
                 "name": "H. G. Wells"
             }
-        ]
+        ],
+        "id": 168
     },
     {
         "title": "The Case-Book of Sherlock Holmes",
@@ -346,7 +537,8 @@ const librosMisterio = [
                 "key": "/authors/OL161167A",
                 "name": "Arthur Conan Doyle"
             }
-        ]
+        ],
+        "id": 139
     },
     {
         "title": "Tom Sawyer, Detective",
@@ -363,7 +555,8 @@ const librosMisterio = [
                 "key": "/authors/OL9213496A",
                 "name": "Professor Grover Gardner"
             }
-        ]
+        ],
+        "id": 129
     },
     {
         "title": "The Secret Agent",
@@ -372,7 +565,8 @@ const librosMisterio = [
                 "key": "/authors/OL19441A",
                 "name": "Joseph Conrad"
             }
-        ]
+        ],
+        "id": 120
     }
 ]
 const librosHorror = [
@@ -383,7 +577,8 @@ const librosHorror = [
                 "key": "/authors/OL20646A",
                 "name": "Oscar Wilde"
             }
-        ]
+        ],
+        "id": 240
     },
     {
         "title": "Dracula",
@@ -392,7 +587,8 @@ const librosHorror = [
                 "key": "/authors/OL31727A",
                 "name": "Bram Stoker"
             }
-        ]
+        ],
+        "id": 202
     },
     {
         "title": "The Strange Case of Dr. Jekyll and Mr. Hyde",
@@ -401,7 +597,8 @@ const librosHorror = [
                 "key": "/authors/OL25963A",
                 "name": "Robert Louis Stevenson"
             }
-        ]
+        ],
+        "id": 239
     },
     {
         "title": "Carmilla",
@@ -410,7 +607,8 @@ const librosHorror = [
                 "key": "/authors/OL440124A",
                 "name": "Joseph Sheridan Le Fanu"
             }
-        ]
+        ],
+        "id": 219
     },
     {
         "title": "The Great God Pan",
@@ -419,7 +617,8 @@ const librosHorror = [
                 "key": "/authors/OL554155A",
                 "name": "Arthur Machen"
             }
-        ]
+        ],
+        "id": 284
     },
     {
         "title": "Tales of Terror and Mystery",
@@ -428,7 +627,8 @@ const librosHorror = [
                 "key": "/authors/OL161167A",
                 "name": "Arthur Conan Doyle"
             }
-        ]
+        ],
+        "id": 223
     },
     {
         "title": "Brood of the Witch-Queen",
@@ -437,7 +637,8 @@ const librosHorror = [
                 "key": "/authors/OL300813A",
                 "name": "Sax Rohmer"
             }
-        ]
+        ],
+        "id": 280
     },
     {
         "title": "The Damned",
@@ -446,7 +647,8 @@ const librosHorror = [
                 "key": "/authors/OL394726A",
                 "name": "Algernon Blackwood"
             }
-        ]
+        ],
+        "id": 251
     },
     {
         "title": "Carrie",
@@ -455,7 +657,8 @@ const librosHorror = [
                 "key": "/authors/OL2162284A",
                 "name": "Stephen King"
             }
-        ]
+        ],
+        "id": 220
     },
     {
         "title": "The Shining",
@@ -464,7 +667,8 @@ const librosHorror = [
                 "key": "/authors/OL2162284A",
                 "name": "Stephen King"
             }
-        ]
+        ],
+        "id": 246
     },
     {
         "title": "Misery",
@@ -473,7 +677,8 @@ const librosHorror = [
                 "key": "/authors/OL2162284A",
                 "name": "Stephen King"
             }
-        ]
+        ],
+        "id": 289
     },
     {
         "title": "Skeleton Crew",
@@ -482,47 +687,7 @@ const librosHorror = [
                 "key": "/authors/OL2162284A",
                 "name": "Stephen King"
             }
-        ]
+        ],
+        "id": 264
     }
 ]
-
-function getRandomNumber(min, max) {
-    min = Math.ceil(min)
-    max = Math.floor(max)
-    return Math.floor(Math.random() * (max - min + 1) + min)
-}
-
-function showBooks(category) {
-    number = getRandomNumber(0, category.length - 1)
-    selectedBook = category[number]
-    if (user.booksHistorial.includes(selectedBook)) {
-        showBooks(category)
-    } else {
-        alert(`Te recomiendo el libro\n${selectedBook.title}\nEscrito por ${selectedBook.authors[0].name}`)
-        user.addBook(selectedBook)
-        user.booksHistorial.length < 10 ? recommendBook() : alert("Has alcanzado el límite de recomendaciones")
-    }
-}
-
-
-function recommendBook() {
-    let selectedCategory = parseInt(prompt(`Hola ${user.name}, por favor selecciona una categoría utilizando el número correspondiente:    
-    1. Terror
-    2. Fantasía
-    3. Misterio`))
-
-    switch (selectedCategory) {
-        case 1:
-            showBooks(librosHorror)
-            break
-        case 2:
-            showBooks(librosFantasia)
-            break
-        case 3:
-            showBooks(librosMisterio)
-            break
-        default: recommendBook()
-    }
-}
-
-recommendBook()
