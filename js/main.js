@@ -68,7 +68,7 @@ function showBooks(category) {
     if (user.booksHistorial.findIndex((book) => book.id == selectedBook.id) !== -1) {
         showBooks(category)
     } else {
-        if (user.booksHistorial.length >= 10) {
+        if (user.booksHistorial.length >= 15) {
             renderErrorBooks()
         } else {
             user.addBook(selectedBook)
@@ -105,47 +105,54 @@ function renderSelection(book) {
 }
 
 function renderErrorBooks() {
-
+    const errorBook = document.createElement("p")
+    errorBook.classList.add("container", "bg-error", "mt-4", "py-3", "text-white", "fs-5", "fw-bold", "w-50")
+    errorBook.innerText = "Has alcanzado el límite del historial."
+    bookForm.appendChild(errorBook)
+    setTimeout(() => {
+        errorBook.remove()
+    }, 1500);
 
 }
 
 function renderHistorial() {
     const historialDiv = document.getElementById("historial")
+    historialDiv.replaceChildren()
     historial = document.createElement("div")
     historial.classList.add("d-flex", "flex-column",)
-    historial.innerHTML = ""
     if (user.booksHistorial.length > 0) {
         let accumulator = ``
-        user.booksHistorial.map((book) => {
+        user.booksHistorial.forEach((book) => {
             accumulator += ` 
-                        <div id=${book.id} class="card text-center bg-historial">
-                            <div class="card-body d-flex flex-column justify-content-between">
+                        <div class="card text-center bg-historial">
+                            <div class="card-body d-flex flex-column align-items-center justify-content-between gap-2">
                             <p class="card-title text-center fs-5">${book.title}</p>
                             </div>
                         </div>
                          `
-
         })
         historial.innerHTML = `
                             <h2 class="align-self-start">Historial <span class="fw-bold">(${user.booksHistorial.length})</span> </h2>    
-                            <div class= "d-flex gap-2">${accumulator}</div>    
+                            <div class= "d-flex flex-wrap gap-3 container">${accumulator}</div>    
                            `
-        const clearHistorial = document.createElement("button")
-        clearHistorial.classList.add("btn", "btn-danger", "m-3")
-        clearHistorial.innerText = "Borrar Historial"
-        clearHistorial.addEventListener("click", () => {
-            user.clearHistorial()
-            saveData("user", user)
-            renderHistorial()
-        })
-
-        historialDiv.appendChild(historial)
-        historial.appendChild(clearHistorial)
+        clearHistorial(historialDiv)
     } else {
         historial.innerHTML = `<h2 class="mt-5 align-self-center">Historial Vacío</h2>`
-        historialDiv.appendChild(historial)
-
     }
+    historialDiv.appendChild(historial)
+}
+
+function clearHistorial(parentNode) {
+    const clearHistorial = document.createElement("button")
+    clearHistorial.classList.add("btn", "btn-danger", "m-3")
+    clearHistorial.innerText = "Borrar Historial"
+    clearHistorial.addEventListener("click", () => {
+        user.clearHistorial()
+        saveData("user", user)
+        renderHistorial()
+    })
+    parentNode.appendChild(historial)
+    historial.appendChild(clearHistorial)
 
 }
 
