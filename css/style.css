@@ -1,5 +1,12 @@
+h1 {
+  font-size: 7rem;
+}
+.font-tangerine {
+  font-family: "Tangerine", serif;
+}
+
 .bg-navbar {
-  background: rgb(255, 245, 190);
+  background: #fff5be;
   background: linear-gradient(90deg, rgba(255, 245, 190, 1) 0%, rgba(247, 242, 208, 1) 100%);
 }
 
@@ -18,7 +25,7 @@
 }
 
 .bg-historial {
-  background-color: rgb(255, 218, 162);
+  background-color: #ffdaa2;
 }
 
 .bg-error {
@@ -46,4 +53,29 @@
 .select-list {
   font-family: "Times New Roman", Times, serif;
   font-weight: 600;
+}
+
+.btn-searchBook {
+  background-color: #bdd6a9;
+}
+.btn-searchBook:hover {
+  background-color: #9ac086;
+}
+.btn-searchBook:focus {
+  background-color: #9ac086;
+}
+
+.btn-deleteHistorial {
+  background-color: #85b49b;
+  font-size: large;
+}
+.btn-deleteHistorial:hover {
+  background-color: #3e6b75;
+  color: rgb(238, 73, 73);
+}
+.btn-deleteBook {
+  background-color: #bd5a41;
+}
+.btn-deleteBook:hover {
+  background-color: #f98e72;
 }
