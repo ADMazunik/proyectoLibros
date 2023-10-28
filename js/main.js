@@ -207,8 +207,12 @@ function fetchBooks(category) {
             [...works] = data.works
             showBooks(works)
         })
-        .catch((err) => {
-            alert("Ha ocurrido un problema, intenta de nuevo más tarde")
-            console.log(err)
+        .catch(() => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Ha ocurrido un problema',
+                text: 'Intenta de nuevo más tarde',
+                background: "#ffdaa2",
+            })
         })
 }
